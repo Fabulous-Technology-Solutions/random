@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Crop and Download Image</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Rubik&display=swap" rel="stylesheet" />
+    <!-- Cropper -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" />
+
+    <style>
+        /* Your CSS styles here */
+    </style>
+</head>
+
+<body>
+    <div class="wrapper">
+        <div class="container">
+            <div class="image-container">
+                <img id="image" />
+            </div>
+            <div class="preview-container">
+                <img id="preview-image" />
+            </div>
+        </div>
+        <input type="file" id="file" accept="image/*" />
+        <label for="file">Choose A Photo</label>
+        <div class="options hide">
+            <input type="number" id="height-input" placeholder="Enter Height" max="780" />
+            <input type="number" id="width-input" placeholder="Enter Width" max="780" />
+            <button class="aspect-ratio-button">16:9</button>
+            <button class="aspect-ratio-button">4:3</button>
+            <button class="aspect-ratio-button">1:1</button>
+            <button class="aspect-ratio-button">2:3</button>
+            <button class="aspect-ratio-button">Free</button>
+        </div>
+        <label for="rotation-slider">Rotate:</label>
+        <div class="rotation-controls ">
+            <input type="range" id="rotation-slider" min="0" max="360" step="1" value="0" />
+            <input type="number" id="rotation-degree" min="0" max="360" step="1" value="0" />
+            <button id="rotate-left">Rotate Left</button>
+            <button id="rotate-right">Rotate Right</button>
+        </div>
+        <div class="btns">
+            <button id="preview" class="hide">Preview</button>
+            <a href="" id="download" class="hide">Download</a>
+        </div>
+    </div>
+    <!-- Script -->
+    <script>
+        let fileInput = document.getElementById("file");
+        let image = document.getElementById("image");
+        let downloadButton = document.getElementById("download");
+        let aspectRatio = document.querySelectorAll(".aspect-ratio-button");
+        const previewButton = document.getElementById("preview");
+        const previewImage = document.getElementById("preview-image");
+        const options = document.querySelector(".options");
+        const widthInput = document.getElementById("width-input");
+        const heightInput = document.getElementById("height-input");
+        let cropper = "";
+        let fileName = "";
+
+        fileInput.onchange = () => {
+            previewImage.src = "";
+            heightInput.value = 0;
+            widthInput.value = 0;
+            downloadButton.classList.add("hide");
+
+            let reader = new FileReader();
+            reader.readAsDataURL(fileInput.files[0]);
+
+            reader.onload = () => {
+                image.setAttribute("src", reader.result);
+                if (cropper) {
+                    cropper.destroy();
+                }
+                cropper = new Cropper(image, {
+                    viewMode: 3, // Set view mode to enable rotation handles
+                    dragMode: 'crop', // Enable crop mode
+                    aspectRatio: NaN, // Free aspect ratio initially
+                    autoCropArea: 1, // Show initial crop area
+                    rotatable: true, // Enable rotation
+                    cropend: () => {
+                        const data = cropper.getData();
+                        rotationSlider.value = data.rotate || 0;
+                    },
+                });
+                options.classList.remove("hide");
+                previewButton.classList.remove("hide");
+            };
+            fileName = fileInput.files[0].name.split(".")[0];
+        };
+
+        aspectRatio.forEach((element) => {
+            element.addEventListener("click", () => {
+                if (element.innerText == "Free") {
+                    cropper.setAspectRatio(NaN);
+                } else {
+                    cropper.setAspectRatio(eval(element.innerText.replace(":", "/")));
+                }
+            });
+        });
+
+        heightInput.addEventListener("input", () => {
+            const { height } = cropper.getImageData();
+            if (parseInt(heightInput.value) > Math.round(height)) {
+                heightInput.value = Math.round(height);
+            }
+            let newHeight = parseInt(heightInput.value);
+            cropper.setCropBoxData({ height: newHeight });
+        });
+
+        widthInput.addEventListener("input", () => {
+            const { width } = cropper.getImageData();
+            if (parseInt(widthInput.value) > Math.round(width)) {
+                widthInput.value = Math.round(width);
+            }
+            let newWidth = parseInt(widthInput.value);
+            cropper.setCropBoxData({ width: newWidth });
+        });
+
+        previewButton.addEventListener("click", (e) => {
+            e.preventDefault();
+            downloadButton.classList.remove("hide");
+            let imgSrc = cropper.getCroppedCanvas({}).toDataURL();
+            previewImage.src = imgSrc;
+            downloadButton.download = `cropped_${fileName}.png`;
+            downloadButton.setAttribute("href", imgSrc);
+        });
+
+        window.onload = () => {
+            downloadButton.classList.add("hide");
+            options.classList.add("hide");
+            previewButton.classList.add("hide");
+        };
+
+        const rotationSlider = document.getElementById('rotation-slider');
+        const rotationDegreeInput = document.getElementById('rotation-degree');
+        const rotateLeftBtn = document.getElementById('rotate-left');
+        const rotateRightBtn = document.getElementById('rotate-right');
+
+        rotationSlider.addEventListener('input', (e) => {
+            const degrees = parseInt(e.target.value);
+            if (cropper) {
+                cropper.rotateTo(degrees);
+                rotationDegreeInput.value = degrees;
+            }
+        });
+
+        rotationDegreeInput.addEventListener('input', (e) => {
+            const degrees = parseInt(e.target.value);
+            if (!isNaN(degrees) && degrees >= 0 && degrees <= 360) {
+                if (cropper) {
+                    cropper.rotateTo(degrees);
+                    rotationSlider.value = degrees;
+                }
+            }
+        });
+
+        rotateLeftBtn.addEventListener('click', () => {
+            if (cropper) {
+                cropper.rotate(-90);
+            }
+        });
+
+        rotateRightBtn.addEventListener('click', () => {
+            if (cropper) {
+                cropper.rotate(90);
+            }
+        });
+
+    </script>
+</body>
+
+</html>

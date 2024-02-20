@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet"size href="style.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+    <script type="text/javascript" src="https://unpkg.com/qr-code-styling@1.5.0/lib/qr-code-styling.js"></script>
+</head>
+<body>
+    <div class="container">
+        <div class="setting">
+            <div class="input-wrap">
+                <label for="data">Data</label>
+                <textarea id="data" class="input-1x" cols="30" rows="10">video</textarea>
+            </div>
+            <div class="input-wrap">
+                <label for="size">Size</label>
+                <input type="range" id="size" min="1" max="100" value="1" class="input-1x">
+            </div>
+            <div class="input-wrap">
+                <label for="logo">Logo</label>
+                <div class="input-2x">
+                    <a href="javascript:browse();">
+                        <span class="material-symbols-outlined">photo</span>
+                        <input type="file" id="logo" hidden>
+                    </a>
+                </div>
+            
+                <div class="input-2x">
+                    <button id="clear" type="button">clear</button>
+                </div>
+            </div>
+            
+            <div class="input-wrap">
+                <label for="margin">Margin</label>
+                <input type="range" id="margin" min="10" max="30" class="input-1x">
+            </div>
+            <div class="input-wrap">
+                <label for="margin">Dot Mode</label>
+                <select id="dot" class="input-1x" >
+                    <option value="rounded">rounded</option>
+                    <option value="dots">dots</option>
+                    <option value="classy">classy</option>
+                    <option value="classy-rounded">classy-rounded</option>
+                    <option value="square">Square</option>
+                    <option value="extra-rounded">xtra-rounded</option>
+                </select>
+            </div>
+            <div class="input-wrap">
+                <label for="">Corner Square Style</label>
+                <select id="corner-square" class="input-1x">                   
+                    <option value="square">Square</option>
+                    <option value="dot">Dot</option>
+                    <option value="extra-rounded">Extra Rounded</option>
+                </select>                
+            </div>
+            <div class="input-wrap">
+                <label for="">Corner Square Color</label>
+                <input type="color" class="input-2x" id="corner-square-color">
+            </div>
+            <div class="input-wrap">
+                <label for="corner-dot">Corner Square Style</label>
+                <select id="corner-dot" class="input-1x" >
+                    <option value="square">Square</option>
+                    <option value="dot">Dot</option>
+                </select>
+            </div>
+            <div class="input-wrap">
+                <label for="cornerdot-color">Corner Dot Color</label>
+                <input type="color" class="input-2x" id="cornerdot-color">
+            </div>
+            <div class="input-wrap">
+                <label for="dot-color">Dot Color</label>
+                <input type="color" class="input-2x" id="dot-color-1">
+            </div>
+            <div class="input-wrap">
+                <label for="bg-color">bg Color</label>
+                <input type="color" class="input-2x" id="bg-color">
+            </div>
+        </div>
+        <div class="display">
+            <div id="canvas"></div>
+            <p>300px X 300px</p>
+            <button class="btn-download" id="btn-dl" type="button">Download</button>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>

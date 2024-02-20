@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Multiple Option Select from Groups - JavaScript</title>
+</head>
+<body>
+    <script type='text/javascript' src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"  ></script>
+    <script type='text/javascript' src="https://rawgit.com/bnjmnhndrsn/select2-optgroup-select/master/example/vendor/jquery.mousewheel.js"></script>
+    <script type='text/javascript' src="https://rawgit.com/bnjmnhndrsn/select2-optgroup-select/master/example/vendor/select2.js"></script>
+    <script type='text/javascript' src="https://rawgit.com/bnjmnhndrsn/select2-optgroup-select/master/dist/select2.optgroupSelect.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.8/css/select2.min.css"  />
+    <select id="target" data-placeholder="Select an option" multiple='multiple' style="width: 400px; margin-bottom: 30px;">
+         <optgroup label="FIRST">
+                <option value="1">Option 1</option>
+                <option  value="2">Option 2</option>
+                <option  value="3">Option 3</option>
+                <option  value="4">Option 4</option>
+                <option value="5">Option 5</option>
+          </optgroup>
+          <optgroup label="SECOND">
+                <option class="456" value="6">Option 6</option>
+                <option class="456" value="7">Option 7</option>
+                <option class="456" value="8">Option 8</option>
+                <option class="456" value="9">Option 9</option>
+                <option class="456" value="10">Option 10</option>
+           </optgroup>
+     </select>
+<script>
+    	$('#target').select2();
+  $(function(){
+	    $.fn.select2.amd.require(["optgroup-data", "optgroup-results"], 
+	        function (OptgroupData, OptgroupResults) {
+	        $('#target').select2({
+	            dataAdapter: OptgroupData,
+	            resultsAdapter: OptgroupResults,
+	            closeOnSelect: false,
+				
+	        }); 
+	    });
+	});
+</script>
+
+</body>
+</html>

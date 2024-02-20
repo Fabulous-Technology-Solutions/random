@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Quill Editor with Mammoth</title>
+    <!-- Quill styles -->
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+</head>
+
+<body>
+    <h1>Quill Editor with Mammoth</h1>
+    <input type="file" id="fileInput">
+    <div id="editor" style="height: 400px;"></div>
+    <button id="downloadDocx">Download DOCX</button>
+
+    <!-- Quill script -->
+    <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+    <!-- Mammoth script -->
+
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.4.0/mammoth.browser.min.js"></script>
+
+    <script>
+        let quill;
+
+        document.getElementById('fileInput').addEventListener('change', function (event) {
+            const selectedFile = event.target.files[0];
+
+            if (selectedFile) {
+                const fileType = selectedFile.type;
+                if (fileType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
+                    readDocxFile(selectedFile);
+                } else {
+                    alert('Please select a DOCX file.');
+                }
+            }
+        });
+
+        function readDocxFile(file) {
+            const reader = new FileReader();
+
+            reader.onload = function (event) {
+                const arrayBuffer = event.target.result;
+                mammoth.extractRawText({ arrayBuffer: arrayBuffer })
+                    .then(function (result) {
+                        const text = result.value;
+                        // Initialize Quill with extracted text content
+                        initializeQuill(text);
+                    })
+                    .catch(function (error) {
+                        console.error('Error extracting text:', error);
+                    });
+            };
+
+            // Read the file as array buffer
+            reader.readAsArrayBuffer(file);
+        }
+
+        function initializeQuill(initialContent) {
+            quill = new Quill('#editor', {
+                theme: 'snow'
+            });
+
+            // Set the content of Quill with the extracted text
+            quill.root.innerHTML = initialContent;
+        }
+
+        document.getElementById('downloadDocx').addEventListener('click', function () {
+    if (quill) {
+        const content = quill.root.innerHTML;
+
+        // Convert Quill content to DOCX file
+        mammoth.convertToBlob({ html: content })
+            .then(function (result) {
+                const blob = result.blob;
+                const url = URL.createObjectURL(blob);
+
+                // Create a temporary link element to trigger download
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = 'edited_content.docx';
+                link.click();
+
+                // Clean up - remove temporary link and revoke object URL
+                URL.revokeObjectURL(url);
+            })
+            .catch(function (error) {
+                console.error('Error generating DOCX:', error);
+            });
+    } else {
+        alert('No content to download. Please load a DOCX file.');
+    }
+});
+
+    </script>
+            <script src="https://cdn.jsdelivr.net/npm/mammoth@1.5.1/dist/mammoth.browser.min.js"></script>
+</body>
+
+</html>

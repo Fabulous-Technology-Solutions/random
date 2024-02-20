@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Draw on Google Maps</title>
+    <style>
+        /* Style the map container */
+        #map {
+            height: 600px;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Create a div to hold the map -->
+<div id="map"></div>
+
+<!-- Include the Google Maps API script -->
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAu1gwHCSzLG9ACacQqLk-LG8oJMkarNF0&libraries=drawing"></script>
+
+<script>
+    let map;
+
+    function initMap() {
+        // Initialize the map
+        map = new google.maps.Map(document.getElementById('map'), {
+            center: { lat: 40.7128, lng: -74.0060 }, // Default center (New York City)
+            zoom: 12 // Default zoom level
+        });
+
+        // Create a drawing manager to enable drawing on the map
+        const drawingManager = new google.maps.drawing.DrawingManager({
+            drawingMode: google.maps.drawing.OverlayType.POLYGON,
+            drawingControl: true,
+            drawingControlOptions: {
+                position: google.maps.ControlPosition.TOP_CENTER,
+                drawingModes: ['polygon']
+            },
+            polygonOptions: {
+                editable: true,
+                draggable: true
+            }
+        });
+
+        // Set the drawing manager to the map
+        drawingManager.setMap(map);
+
+        // Listen for when a polygon is completed
+        google.maps.event.addListener(drawingManager, 'overlaycomplete', function(event) {
+            if (event.type === google.maps.drawing.OverlayType.POLYGON) {
+                // Get the coordinates of the drawn polygon
+                const polygon = event.overlay;
+                const coordinates = polygon.getPath().getArray();
+
+                // Display the coordinates in the console
+                console.log('Polygon coordinates:', coordinates);
+            }
+        });
+    }
+</script>
+
+<!-- Call the initMap function when the page loads -->
+<script async defer
+        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAu1gwHCSzLG9ACacQqLk-LG8oJMkarNF0&libraries=drawing&callback=initMap">
+</script>
+
+</body>
+</html>

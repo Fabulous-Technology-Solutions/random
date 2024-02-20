@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Word Document Editor</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.0.1/mammoth.browser.min.js"></script>
+  <style>
+    /* Existing styles */
+    #file-input {
+      display: none;
+    }
+  
+    #word-content {
+      display: none;
+      border: 1px solid #ccc; /* Add border for visibility */
+      padding: 10px; /* Add padding for spacing */
+      margin-top: 10px; /* Add margin for separation */
+      min-height: 300px; /* Set a minimum height */
+      font-family: Arial, sans-serif; /* Define font family */
+      font-size: 16px; /* Define font size */
+      line-height: 1.5; /* Define line height */
+      overflow-y: auto; /* Add vertical scrollbar if content exceeds height */
+    }
+  
+    /* Additional styles for buttons or other elements can be added here */
+  
+    /* Style for file name display */
+    #file-name-container {
+      margin-top: 10px;
+      font-style: italic;
+    }
+  
+    /* Style for buttons */
+    button {
+      margin-top: 10px;
+      padding: 8px 16px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+  
+    button:hover {
+      background-color: #0056b3;
+    }
+  </style>
+  
+</head>
+<body>
+
+  <input type="file" id="file-input" accept=".docx" onchange="handleFileUpload(event)">
+  <div id="file-name-container"></div>
+  <button onclick="openFilePicker()">Upload Word Document</button>
+  <button onclick="toggleEditMode()">Edit</button>
+  <button onclick="saveChanges()">Save</button>
+  <div id="word-content" contenteditable="false"></div>
+
+  <script>
+    let originalWordContent = "";
+    let currentWordContent = "";
+    let editMode = false;
+
+    function openFilePicker() {
+      document.getElementById('file-input').click();
+    }
+
+    function handleFileUpload(event) {
+      const fileInput = event.target;
+      const file = fileInput.files[0];
+
+      if (file && file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
+        const reader = new FileReader();
+
+        reader.onload = function(e) {
+          const arrayBuffer = e.target.result;
+
+          mammoth.extractRawText({ arrayBuffer: arrayBuffer })
+            .then(result => {
+              originalWordContent = result.value;
+              currentWordContent = originalWordContent;
+              displayContent();
+            })
+            .catch(error => console.error(error));
+
+          // Display the file name
+          displayFileName(file.name);
+        };
+
+        reader.readAsArrayBuffer(file);
+      } else {
+        alert('Please upload a valid Word document.');
+      }
+    }
+
+    function displayContent() {
+      const wordContentDiv = document.getElementById('word-content');
+      wordContentDiv.innerHTML = currentWordContent;
+    }
+
+    function toggleEditMode() {
+      const wordContentDiv = document.getElementById('word-content');
+      editMode = !editMode;
+
+      if (editMode) {
+        wordContentDiv.contentEditable = true;
+        wordContentDiv.focus();
+        wordContentDiv.style.display = 'block'; // Show the content when in edit mode
+      } else {
+        wordContentDiv.contentEditable = false;
+        wordContentDiv.style.display = 'none'; // Hide the content when not in edit mode
+      }
+    }
+
+    function saveChanges() {
+      const wordContentDiv = document.getElementById('word-content');
+      currentWordContent = wordContentDiv.innerText;
+
+      // Save changes to localStorage
+      localStorage.setItem('wordDocumentContent', currentWordContent);
+
+      alert('Changes saved successfully!');
+    }
+
+    function displayFileName(fileName) {
+      const fileNameContainer = document.getElementById('file-name-container');
+      fileNameContainer.innerText = `File Name: ${fileName}`;
+    }
+
+    // Load saved content from localStorage on page load
+    window.onload = function() {
+      const savedContent = localStorage.getItem('wordDocumentContent');
+      if (savedContent) {
+        originalWordContent = savedContent;
+        currentWordContent = originalWordContent;
+        displayContent();
+      }
+    };
+  </script>
+
+</body>
+</html>

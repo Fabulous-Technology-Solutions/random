@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Quill Editor with Mammoth</title>
+    <!-- Quill styles -->
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+</head>
+
+<body>
+    <h1>Quill Editor with Mammoth</h1>
+    <input type="text" id="s3Link" placeholder="Enter S3 link">
+    <button id="loadFromS3">Load from S3</button>
+    <div id="editor" style="height: 400px;"></div>
+    <button id="downloadDocx">Download DOCX</button>
+
+    <!-- Quill script -->
+    <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+    <!-- Mammoth script -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.4.0/mammoth.browser.min.js"></script>
+
+    <script>
+        let quill;
+
+        document.getElementById('loadFromS3').addEventListener('click', function () {
+            const s3Link = document.getElementById('s3Link').value.trim();
+            
+            if (s3Link !== '') {
+                // Fetch the document from S3
+                fetch(s3Link)
+                    .then(response => response.blob())
+                    .then(blob => {
+                        // Read the blob as array buffer
+                        const reader = new FileReader();
+                        reader.onload = function (event) {
+                            const arrayBuffer = event.target.result;
+                            extractContentFromDocx(arrayBuffer);
+                        };
+                        reader.readAsArrayBuffer(blob);
+                    })
+                    .catch(error => {
+                        console.error('Error fetching document from S3:', error);
+                    });
+            } else {
+                alert('Please enter a valid S3 link.');
+            }
+        });
+
+        function extractContentFromDocx(arrayBuffer) {
+            mammoth.extractRawText({ arrayBuffer: arrayBuffer })
+                .then(function (result) {
+                    const text = result.value;
+                    // Initialize Quill with extracted text content
+                    initializeQuill(text);
+                })
+                .catch(function (error) {
+                    console.error('Error extracting text:', error);
+                });
+        }
+
+        function initializeQuill(initialContent) {
+            quill = new Quill('#editor', {
+                theme: 'snow'
+            });
+
+            // Set the content of Quill with the extracted text
+            quill.root.innerHTML = initialContent;
+        }
+
+        document.getElementById('downloadDocx').addEventListener('click', function () {
+            if (quill) {
+                const content = quill.root.innerHTML;
+
+                // Convert Quill content to DOCX file
+                mammoth.convertToBlob({ html: content })
+                    .then(function (result) {
+                        const blob = result.blob;
+                        const url = URL.createObjectURL(blob);
+
+                        // Create a temporary link element to trigger download
+                        const link = document.createElement('a');
+                        link.href = url;
+                        link.download = 'edited_content.docx';
+                        link.click();
+
+                        // Clean up - remove temporary link and revoke object URL
+                        URL.revokeObjectURL(url);
+                    })
+                    .catch(function (error) {
+                        console.error('Error generating DOCX:', error);
+                    });
+            } else {
+                alert('No content to download. Please load a document first.');
+            }
+        });
+
+    </script>
+</body>
+
+</html>
