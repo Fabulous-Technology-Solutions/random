@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Restaurant Search</title>
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAu1gwHCSzLG9ACacQqLk-LG8oJMkarNF0&libraries=places"></script>
+<script>
+    function searchRestaurants() {
+        var location = document.getElementById('location').value;
+        var foodType = document.getElementById('foodType').value;
+
+        var map = new google.maps.Map(document.getElementById('map'), {
+            center: {lat: -34.397, lng: 150.644},
+            zoom: 15
+        });
+
+        var request = {
+            location: map.getCenter(),
+            radius: '500',
+            query: location + ' ' + foodType + ' restaurants'
+        };
+
+        var service = new google.maps.places.PlacesService(map);
+
+        service.textSearch(request, function(results, status) {
+            if (status === google.maps.places.PlacesServiceStatus.OK) {
+                var restaurants = [];
+                results.forEach(function(place) {
+                    var restaurant = {
+                        name: place.name,
+                        address: place.formatted_address,
+                        rating: place.rating,
+                        types: place.types,
+                        phone: '',
+                        website: '',
+                        isOpen: '',
+                        reviews: [],
+                        photos: []
+                    };
+
+                    // Fetch additional details for the place
+                    service.getDetails({
+                        placeId: place.place_id
+                    }, function(placeDetails, status) {
+                        if (status === google.maps.places.PlacesServiceStatus.OK) {
+                            restaurant.phone = placeDetails.formatted_phone_number || 'N/A';
+                            restaurant.website = placeDetails.website || 'N/A';
+
+                            if (placeDetails.opening_hours && placeDetails.opening_hours.open_now !== undefined) {
+                                restaurant.isOpen = placeDetails.opening_hours.open_now ? 'Open' : 'Closed';
+                            } else {
+                                restaurant.isOpen = 'Unknown';
+                            }
+
+                            if (placeDetails.reviews && placeDetails.reviews.length > 0) {
+                                placeDetails.reviews.forEach(function(review) {
+                                    restaurant.reviews.push({
+                                        author: review.author_name,
+                                        rating: review.rating,
+                                        text: review.text
+                                    });
+                                });
+                            }
+
+                            if (placeDetails.photos && placeDetails.photos.length > 0) {
+                                placeDetails.photos.forEach(function(photo) {
+                                    restaurant.photos.push(photo.getUrl({ maxWidth: 400 }));
+                                });
+                            }
+                        }
+                        restaurants.push(restaurant);
+                        updateResponse(restaurants);
+                    });
+                });
+            } else {
+                document.getElementById('response').textContent = 'No restaurants found';
+            }
+        });
+    }
+
+    function updateResponse(restaurants) {
+        document.getElementById('response').textContent = JSON.stringify(restaurants, null, 2);
+    }
+</script>
+</head>
+<body>
+    <h1>Restaurant Search</h1>
+    <form onsubmit="event.preventDefault(); searchRestaurants();">
+        <label for="location">Location:</label>
+        <input type="text" id="location" required><br><br>
+        <label for="foodType">Food Type:</label>
+        <input type="text" id="foodType" required><br><br>
+        <button type="submit">Search</button>
+    </form>
+    <div id="map" style="height: 400px;"></div>
+    <pre id="response"></pre>
+</body>
+</html>

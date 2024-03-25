@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Restaurant Search</title>
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAu1gwHCSzLG9ACacQqLk-LG8oJMkarNF0&libraries=places"></script>
+<script>
+    function searchRestaurants() {
+        var location = document.getElementById('location').value;
+        var foodType = document.getElementById('foodType').value;
+
+        var map = new google.maps.Map(document.getElementById('map'), {
+            center: {lat: -34.397, lng: 150.644},
+            zoom: 15
+        });
+
+        var request = {
+            location: map.getCenter(),
+            radius: '500',
+            query: location + ' ' + foodType + ' restaurants'
+        };
+
+        var service = new google.maps.places.PlacesService(map);
+
+        service.textSearch(request, function(results, status) {
+            if (status === google.maps.places.PlacesServiceStatus.OK) {
+                var restaurants = [];
+                results.forEach(function(place) {
+                    service.getDetails({
+                        placeId: place.place_id
+                    }, function(placeDetails, status) {
+                        if (status === google.maps.places.PlacesServiceStatus.OK) {
+                            var serviceOptions = placeDetails.types.filter(type => ["meal_takeaway", "restaurant"].includes(type));
+                            var accessibility = placeDetails.accessibility || [];
+                            var offerings = placeDetails.offerings || [];
+                            var diningOptions = placeDetails.dining_options || [];
+                            var atmosphere = placeDetails.atmosphere || [];
+                            var crowd = placeDetails.crowd || [];
+                            var planning = placeDetails.planning || [];
+                            var children = placeDetails.children || [];
+
+                            var restaurant = {
+                                name: place.name,
+                                address: place.formatted_address,
+                                rating: place.rating,
+                                types: place.types,
+                                phone: placeDetails.formatted_phone_number || 'N/A',
+                                website: placeDetails.website || 'N/A',
+                                isOpen: (placeDetails.opening_hours && placeDetails.opening_hours.open_now !== undefined) ? (placeDetails.opening_hours.open_now ? 'Open' : 'Closed') : 'Unknown',
+                                atmosphere: atmosphere,
+                                crowd: crowd,
+                                planning: planning,
+                                children: children,
+                                serviceOptions: serviceOptions,
+                                accessibility: accessibility,
+                                offerings: offerings,
+                                reviews: [],
+                                photos: []
+                            };
+
+                            if (placeDetails.reviews && placeDetails.reviews.length > 0) {
+                                placeDetails.reviews.forEach(function(review) {
+                                    restaurant.reviews.push({
+                                        author: review.author_name,
+                                        rating: review.rating,
+                                        text: review.text
+                                    });
+                                });
+                            }
+
+                            if (placeDetails.photos && placeDetails.photos.length > 0) {
+                                placeDetails.photos.forEach(function(photo) {
+                                    restaurant.photos.push(photo.getUrl({ maxWidth: 400 }));
+                                });
+                            }
+
+                            restaurants.push(restaurant);
+                            updateResponse(restaurants);
+                        } else {
+                            document.getElementById('response').textContent = 'No restaurants found';
+                        }
+                    });
+                });
+            } else {
+                document.getElementById('response').textContent = 'No restaurants found';
+            }
+        });
+    }
+
+    function updateResponse(restaurants) {
+        var responseHtml = '';
+        restaurants.forEach(function(restaurant, index) {
+            responseHtml += '<h2>' + restaurant.name + '</h2>';
+            responseHtml += '<p><strong>Address:</strong> ' + restaurant.address + '</p>';
+            responseHtml += '<p><strong>Rating:</strong> ' + restaurant.rating + '</p>';
+            responseHtml += '<p><strong>Phone:</strong> ' + restaurant.phone + '</p>';
+            responseHtml += '<p><strong>Website:</strong> ' + restaurant.website + '</p>';
+            responseHtml += '<p><strong>Open Now:</strong> ' + restaurant.isOpen + '</p>';
+            responseHtml += '<p><strong>Atmosphere:</strong> ' + restaurant.atmosphere.join(', ') + '</p>';
+            responseHtml += '<p><strong>Crowd:</strong> ' + restaurant.crowd.join(', ') + '</p>';
+            responseHtml += '<p><strong>Planning:</strong> ' + restaurant.planning.join(', ') + '</p>';
+            responseHtml += '<p><strong>Children:</strong> ' + restaurant.children.join(', ') + '</p>';
+            responseHtml += '<p><strong>Service Options:</strong> ' + restaurant.serviceOptions.join(', ') + '</p>';
+            responseHtml += '<p><strong>Accessibility:</strong> ' + restaurant.accessibility.join(', ') + '</p>';
+            responseHtml += '<p><strong>Offerings:</strong> ' + restaurant.offerings.join(', ') + '</p>';
+            responseHtml += '<h3>Reviews</h3>';
+            if (restaurant.reviews.length > 0) {
+                restaurant.reviews.forEach(function(review) {
+                    responseHtml += '<p><strong>Author:</strong> ' + review.author + '</p>';
+                    responseHtml += '<p><strong>Rating:</strong> ' + review.rating + '</p>';
+                    responseHtml += '<p><strong>Review:</strong> ' + review.text + '</p>';
+                });
+            } else {
+                responseHtml += '<p>No reviews available</p>';
+            }
+            responseHtml += '<hr>';
+        });
+
+        document.getElementById('response').innerHTML = responseHtml;
+    }
+</script>
+</head>
+<body>
+    <h1>Restaurant Search</h1>
+    <form onsubmit="event.preventDefault(); searchRestaurants();">
+        <label for="location">Location:</label>
+        <input type="text" id="location" required><br><br>
+        <label for="foodType">Food Type:</label>
+        <input type="text" id="foodType" required><br><br>
+        <button type="submit">Search</button>
+    </form>
+    <div id="map" style="height: 400px;"></div>
+    <div id="response"></div>
+</body>
+</html>
