@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PDF Preview</title>
+<style>
+    body {
+        margin: 0;
+        padding: 0;
+        font-family: Arial, sans-serif;
+    }
+    #pdf-container {
+        width: 100%;
+        height: 100vh;
+        position: relative;
+        overflow: hidden;
+    }
+    #pdf-viewer {
+        width: 100%;
+        height: 100%;
+    }
+</style>
+</head>
+<body>
+<div id="pdf-container">
+    <div id="pdf-viewer"></div>
+</div>
+<input type="file" id="pdf-input" accept="application/pdf">
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.12.313/pdf.min.js"></script>
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    // Call the disableInput function to disable keyboard input
+    disableInput();
+
+    document.getElementById('pdf-input').addEventListener('change', function(event) {
+        const file = event.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function() {
+                const typedArray = new Uint8Array(this.result);
+                renderPDF(typedArray);
+            };
+            reader.readAsArrayBuffer(file);
+        }
+    });
+
+    function renderPDF(pdfData) {
+        pdfjsLib.getDocument({ data: pdfData }).promise.then(function(pdf) {
+            pdf.getPage(1).then(function(page) {
+                let viewport = page.getViewport({ scale: 1.5 });
+                let canvas = document.createElement("canvas");
+                let context = canvas.getContext('2d');
+                canvas.height = viewport.height;
+                canvas.width = viewport.width;
+                let renderContext = {
+                    canvasContext: context,
+                    viewport: viewport
+                };
+                page.render(renderContext).promise.then(function() {
+                    document.getElementById('pdf-viewer').innerHTML = "";
+                    document.getElementById('pdf-viewer').appendChild(canvas);
+                });
+            });
+        });
+    }
+});
+
+function disableInput() {
+    // Disable keyboard input
+    document.addEventListener("keydown", function(event) {
+        event.preventDefault();
+    });
+    
+
+    // Disable right-click context menu
+    document.addEventListener('contextmenu', function(e) {
+        e.preventDefault();
+    });
+
+    // Disable mouse clicks
+    var clicks = 0;
+    document.addEventListener('click', function(e) {
+        clicks++;
+        if (clicks >= 8) {
+            e.preventDefault();
+            alert("You've exceeded the maximum allowed clicks.");
+        }
+    });
+}
+</script>
+</body>
+</html>

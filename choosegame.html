@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Random Value Picker Game</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 20px;
+        }
+        .input-container {
+            margin-bottom: 10px;
+        }
+        .result {
+            margin-top: 20px;
+            font-size: 1.5em;
+            color: green;
+        }
+    </style>
+</head>
+<body>
+    <h1>Random Value Picker Game</h1>
+    <div class="input-container">
+        <input type="text" id="value1" placeholder="Enter first value">
+    </div>
+    <div class="input-container">
+        <input type="text" id="value2" placeholder="Enter second value">
+    </div>
+    <div class="input-container">
+        <input type="text" id="value3" placeholder="Enter third value">
+    </div>
+    <div class="input-container">
+        <input type="text" id="value4" placeholder="Enter fourth value">
+    </div>
+    <button onclick="pickRandomValue()">Pick Random Value</button>
+    <div class="result" id="result"></div>
+
+    <script>
+        function pickRandomValue() {
+            const value1 = document.getElementById('value1').value;
+            const value2 = document.getElementById('value2').value;
+            const value3 = document.getElementById('value3').value;
+            const value4 = document.getElementById('value4').value;
+
+            const values = [value1, value2, value3, value4];
+            const randomIndex = Math.floor(Math.random() * values.length);
+            const randomValue = values[randomIndex];
+
+            document.getElementById('result').innerText = `Random Value: ${randomValue}`;
+        }
+    </script>
+</body>
+</html>
